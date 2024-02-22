@@ -78,7 +78,7 @@
             $('form').submit(function () {
                 const himo    = $('select[name="himo"]').val();
                 const udetate = $('input[name="udetate"]').val();
-                const msg = `費目: ${himo}\n金額: ${udetate}`;
+                const msg = `${himo}\n${udetate}`;
                 sendText(msg);
                 return false;
             });
