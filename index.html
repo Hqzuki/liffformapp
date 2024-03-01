@@ -39,6 +39,9 @@
         <div>
             <input class="form-control w-100 mt-1" name="udetate" required>
         </div>
+        <div>
+            <input class="form-control w-100 mt-1" name="memo" required>
+        </div>
         <input type="submit" class="mt-4 btn btn-primary" value="送信">
     </form>
 
@@ -79,7 +82,8 @@
             $('form').submit(function () {
                 const himo    = $('select[name="himo"]').val();
                 const udetate = $('input[name="udetate"]').val();
-                const msg = `${himo}\n${udetate}`;
+                const memo = $('input[name="memo"]').val();
+                const msg = `${himo}\n${udetate}\n${memo}`;
                 sendText(msg);
                 return false;
             });
