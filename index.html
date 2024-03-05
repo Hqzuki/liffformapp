@@ -108,16 +108,16 @@
             });
         }
 
-        $('form').on('submit', function(e) {
-            e.preventDefault(); // フォームのデフォルトの動作をキャンセル
-
-            const nenngetu = $('select[name="nenngetu"]').val();
-            const himo = $('select[name="himo"]').val();
-            const udetate = $('input[name="udetate"]').val();
-            const memo = $('input[name="memo"]').val();
-            const msg = `${himo}\n${udetate}\n${memo}`;
-            sendText(msg);
-            return false;
+        $(function () {
+            $('form').submit(function () {
+                const nenngetu    = $('select[name="nenngetu"]').val();
+                const himo    = $('select[name="himo"]').val();
+                const udetate = $('input[name="udetate"]').val();
+                const memo = $('input[name="memo"]').val();
+                const msg = `${nenngetu}\n${himo}\n${udetate}\n${memo}`;
+                sendText(msg);
+                return false;
+            });
         });
 
 
