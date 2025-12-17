@@ -101,11 +101,19 @@
 
         $(function () {
             $('form').submit(function () {
-                const nenngetu    = $('select[name="nenngetu"]').val();
-                const himo    = $('select[name="himo"]').val();
-                const udetate = $('input[name="udetate"]').val();
-                const memo = $('input[name="memo"]').val();
-                const msg = `${nenngetu}\n${himo}\n${udetate}円\n${memo}`;
+                const nenngetu = $('select[name="nenngetu"]').val();
+                const himo     = $('select[name="himo"]').val();
+                const udetate  = $('input[name="udetate"]').val();
+                const memo     = $('input[name="memo"]').val();
+                
+                // 基本の3行を組み立て
+                let msg = `${nenngetu}\n${himo}\n${udetate}円`;
+
+                // メモがあれば改行( \n )を足してからメモを追加する
+                if (memo && memo.trim() !== "") {
+                    msg += `\n${memo}`;
+                }
+
                 sendText(msg);
                 return false;
             });
@@ -116,3 +124,4 @@
 
 </body>
 </html>
+
