@@ -59,7 +59,7 @@ $(function () {
 
     // ===== 次月のデフォルトを安全に決定 =====
     let defaultYear = currentYear;
-    let defaultMonth = currentMonth + 1;
+    let defaultMonth = currentMonth;
     if (currentMonth === 12) {
         defaultYear = currentYear + 1;
         defaultMonth = 1;
@@ -136,10 +136,8 @@ $(function () {
             return;
         }
 
-        // 3) 通信（初回のみ）
-        // ▼▼▼ あなたのGAS WebアプリURLに差し替え ▼▼▼
-        // 例: https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXX/exec?action=himo
-        const url = "https://script.google.com/macros/s/AKfycbwfvr3uAR_vQXVv7CC3K4YioB1PQk25vVYG9eQECpGuKI4cr-0mPzqJMX272G5dgRGP/exec?action=himo";
+        // 3) 通信（初回のみ
+        const url = "https://script.google.com/macros/s/AKfycbxhjVX1fbzMhvJJLivOEjVto3mDi0WlCSFgg8qisRiRK-RbBN0Cw9LUN9kZDSA5vurA/exec?action=himo";
 
         try {
             const res = await fetch(url, { cache: "no-store" });
@@ -203,6 +201,7 @@ $(function () {
 
 </body>
 </html>
+
 
 
 
