@@ -87,7 +87,7 @@ $(function () {
     // ============================
     const himoCache = { list: null };                 // ページ内キャッシュ
     const CACHE_TTL_MS = 1000 * 60 * 60 * 24;         // 24時間
-    const CACHE_KEY = "himoList:fixedItems:v2";         // 固定費目用
+    const CACHE_KEY = "himoList:fixedItems";          // 固定費目用
 
     function loadFromLocalStorage() {
         try {
@@ -201,12 +201,3 @@ $(function () {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
