@@ -1,6 +1,6 @@
-# 家計簿：LIFFとGAS
+# 共有家計簿
 
-`Hqzuki/liffformapp` 専用プロジェクトです。`liffforapps`（個人カケーボ）とは別に管理します。
+`Hqzuki/kakeibo-shared` 専用プロジェクトです。`kakeibo-personal`（個人カケーボ）とは別に管理します。
 
 ## 構成
 
