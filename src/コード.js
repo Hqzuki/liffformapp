@@ -11,8 +11,11 @@ const SHEET_ID = SETTINGS_property_('SHEET_ID');
 const USER_A = SETTINGS_property_('USER_A');
 const USER_B = SETTINGS_property_('USER_B');
 
+// 実行ごとに1回だけ接続する。別の実行にはキャッシュを持ち越さない。
+let spreadsheetCache_;
 function getSpreadsheet_() {
-  return SpreadsheetApp.openById(SHEET_ID);
+  if (!spreadsheetCache_) spreadsheetCache_ = SpreadsheetApp.openById(SHEET_ID);
+  return spreadsheetCache_;
 }
 
 function getSheetFixedItems_() {
@@ -249,37 +252,38 @@ function parseInputDate_(s) {
 }
 
 // ================================
-// 登録後にソート + 今月より前を非表示
+// 登録後にソートし、当月より前の行をグループ化して折りたたむ。
+// 関数名は既存トリガーとの互換性のため維持する。
 // ================================
 function sortAndHideBeforeThisMonth_(sheet) {
-  // 1行目ヘッダー、A列=日付 を想定
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
   if (lastRow < 2) return;
 
-  // 前回のhideを解除
-  sheet.showRows(2, lastRow - 1);
+  const startRow = 2;
+  const count = lastRow - 1;
+  sheet.showRows(startRow, count);
+  sheet.getRange(startRow, 1, count, lastCol).sort({ column: 1, ascending: true });
 
-  // A列（1列目）で昇順ソート（古い→新しい）
-  // ※「新しいのを上」にしたいなら ascending:false にする
-  sheet.getRange(2, 1, lastRow - 1, lastCol).sort({ column: 1, ascending: true });
+  const dateRange = sheet.getRange(startRow, 1, count, 1);
+  const dates = dateRange.getValues();
+  dateRange.shiftRowGroupDepth(-8);
+  sheet.setRowGroupControlPosition(SpreadsheetApp.GroupControlTogglePosition.BEFORE);
 
-  // 当月初日
-  const now = new Date();
-  const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  firstDayThisMonth.setHours(0, 0, 0, 0);
-
-  // 当月より前をhide
-  const dates = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  for (let i = 0; i < dates.length; i++) {
-    const v = dates[i][0];
-    if (!v) continue;
-
-    const d = (v instanceof Date) ? v : new Date(v);
-    if (isNaN(d.getTime())) continue;
-
-    if (d < firstDayThisMonth) {
-      sheet.hideRows(i + 2);
+  const timeZone = sheet.getParent().getSpreadsheetTimeZone();
+  const currentMonth = Utilities.formatDate(new Date(), timeZone, 'yyyy-MM');
+  let groupStart = -1;
+  for (let i = 0; i <= dates.length; i++) {
+    const value = i < dates.length ? dates[i][0] : null;
+    const date = value ? (value instanceof Date ? value : new Date(value)) : null;
+    const isPast = date && !isNaN(date.getTime()) &&
+      Utilities.formatDate(date, timeZone, 'yyyy-MM') < currentMonth;
+    if (isPast && groupStart === -1) groupStart = i;
+    if (!isPast && groupStart !== -1) {
+      const row = startRow + groupStart;
+      sheet.getRange(row, 1, i - groupStart, 1).shiftRowGroupDepth(1);
+      sheet.getRowGroup(row, 1).collapse();
+      groupStart = -1;
     }
   }
 }
@@ -298,12 +302,9 @@ function registData_(arr) {
   const lastRow = sheet.getLastRow();
   const targetRow = lastRow + 1;
 
-  sheet.getRange(targetRow, 1).setValue(dateObj);
-  sheet.getRange(targetRow, 2).setValue(himo);
-  sheet.getRange(targetRow, 3).setValue(amount);
-  sheet.getRange(targetRow, 4).setValue(memo);
+  sheet.getRange(targetRow, 1, 1, 4).setValues([[dateObj, himo, amount, memo]]);
 
-  // 登録後：ソート + 今月より前を非表示
+  // 登録後：ソート + 当月より前の行をグループ化して折りたたむ
   sortAndHideBeforeThisMonth_(sheet);
 
   const selfMsg =
@@ -369,19 +370,16 @@ function calcSubjectSum_() {
 
   const currentMonthIndex = new Date().getMonth(); // 0=1月 ... 11=12月
 
-  // A2:A の科目名を全部取得
-  const subjectNames = resultSheet.getRange(2, 1, lastRow - 1, 1).getValues(); // [[水道],[電気],...]
-
-  // B2:M の月別値を全部取得（12ヶ月）
-  const monthValues = resultSheet.getRange(2, 2, lastRow - 1, 12).getValues();
+  // 科目名と12か月の値を一度に取得する。
+  const rows = resultSheet.getRange(2, 1, lastRow - 1, 13).getValues();
 
   // 「余り」行まで出す（余り行も含む）
-  for (let i = 0; i < subjectNames.length; i++) {
-    const subjectName = subjectNames[i][0];
+  for (let i = 0; i < rows.length; i++) {
+    const subjectName = rows[i][0];
 
     if (subjectName === "" || subjectName === null || subjectName === undefined) continue;
 
-    const monthValueForSubject = monthValues[i][currentMonthIndex]; // 当月
+    const monthValueForSubject = rows[i][currentMonthIndex + 1]; // 当月
 
     result += `${subjectName}: ${monthValueForSubject}円\n`;
 
